@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Seat Booking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: url('https://www.transparenttextures.com/patterns/white-wall-tiles.png') repeat; /* Background texture */
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2C3E50;
+        }
+
+        .coach {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 10px;
+            width: 100%;
+            max-width: 1000px; /* Maximum width for layout */
+            padding: 20px;
+            border: 2px solid #2980B9; /* Border around the seating area */
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+        }
+
+        .seat {
+            width: 100%;
+            padding-top: 60%; /* Adjusted size for better appearance */
+            background-color: #27AE60; /* Green for available seats */
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            border-radius: 8px; /* Rounded corners */
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+
+        .seat:hover {
+            background-color: #2ECC71; /* Lighter green on hover */
+        }
+
+        .seat span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px; /* Increased font size */
+        }
+
+        .booked {
+            background-color: #E74C3C; /* Red for booked seats */
+        }
+
+        .input-section {
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+        }
+
+        input {
+            padding: 10px;
+            width: 60px;
+            text-align: center;
+            margin-right: 10px;
+            border: 1px solid #2980B9; /* Border for input */
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #2980B9; /* Button color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+
+        button:hover {
+            background-color: #3498DB; /* Lighter blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Train Seat Booking System</h1>
+
+    <div class="coach" id="coach"></div>
+    
+    <div class="input-section">
+        <label for="numSeats">Enter number of seats to book:</label>
+        <input type="number" id="numSeats" min="1" max="7">
+        <button onclick="bookSeats()">Book Seats</button>
+    </div>
+
+    <script>
+        // Initialize seat data
+        const totalSeats = 80;
+        let seats = Array(totalSeats).fill(false); // false = available, true = booked
+
+        // Simulate some seats already booked
+        seats[5] = true; seats[6] = true; seats[20] = true; seats[55] = true; // example pre-booked seats
+
+        // Function to display the coach
+        function displaySeats() {
+            const coach = document.getElementById('coach');
+            coach.innerHTML = ''; // clear the coach div
+            for (let i = 0; i < seats.length; i++) {
+                const seat = document.createElement('div');
+                seat.classList.add('seat');
+                seat.innerHTML = `<span>${i + 1}</span>`;
+                if (seats[i]) seat.classList.add('booked');
+                coach.appendChild(seat);
+            }
+        }
+
+        // Function to find and book seats
+        function bookSeats() {
+            const numSeats = parseInt(document.getElementById('numSeats').value);
+            if (isNaN(numSeats) || numSeats < 1 || numSeats > 7) {
+                alert('Please enter a valid number of seats between 1 and 7.');
+                return;
+            }
+
+            const availableSeats = findSeats(numSeats);
+            if (availableSeats) {
+                for (let seat of availableSeats) {
+                    seats[seat] = true;
+                }
+                displaySeats();
+                alert(`Seats booked: ${availableSeats.map(s => s + 1).join(', ')}`);
+            } else {
+                alert('Not enough adjacent seats available.');
+            }
+        }
+
+        // Function to find adjacent available seats
+        function findSeats(numSeats) {
+            // Check for seats in the same row first
+            for (let i = 0; i < totalSeats; i += 7) {
+                let row = seats.slice(i, i + 7);
+                let start = findContiguousSeats(row, numSeats);
+                if (start !== -1) {
+                    return Array.from({ length: numSeats }, (_, idx) => i + start + idx);
+                }
+            }
+            // If not found in the same row, find nearest available seats
+            let available = [];
+            for (let i = 0; i < totalSeats; i++) {
+                if (!seats[i]) available.push(i);
+                if (available.length === numSeats) return available;
+            }
+            return null;
+        }
+
+        // Helper function to find a contiguous block of seats
+        function findContiguousSeats(row, numSeats) {
+            for (let i = 0; i <= row.length - numSeats; i++) {
+                if (row.slice(i, i + numSeats).every(seat => !seat)) return i;
+            }
+            return -1;
+        }
+
+        // Initialize display
+        displaySeats();
+    </script>
+</body>
+</html>
